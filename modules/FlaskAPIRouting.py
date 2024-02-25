@@ -14,6 +14,12 @@ allowed_languages = {
 }
 
 # API Routes
+
+@app.route('/')
+def index():
+    return "Translate App Server is running!"
+
+
 @app.route('/voiceover_text', methods=['POST'])
 def voiceover_text():
     """ An API route just for the audio file
