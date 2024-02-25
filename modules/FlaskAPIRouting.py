@@ -7,6 +7,12 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+# Language choices available in the Flutter app
+allowed_languages = {
+    'Hindi': 'hi',
+    'Tamil': 'ta'
+}
+
 # API Routes
 @app.route('/voiceover_text', methods=['POST'])
 def voiceover_text():
@@ -17,13 +23,15 @@ def voiceover_text():
     """
     data = request.get_json()
     text = data.get('text')
-    language_code = data.get('language_code')
-    language_code = language_code.lower()
+    language_name = data.get('language_name')
 
-    print(text, language_code)
-
-    if not text or not language_code:
+    if not text or not language_name:
         return jsonify({"error": "Invalid request data."}), 400
+
+    # Convert language name to language code
+    language_code = allowed_languages.get(language_name)
+    if not language_code:
+        return jsonify({"error": "Invalid language choice."}), 400
 
     try:
         # If a language code is provided, translate the text
