@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from pytube import YouTube
 import modules.helperFunctions as hf
 import modules.voiceCloning as vc
@@ -11,11 +11,10 @@ CORS(app)
 @app.route('/voiceover_text', methods=['POST'])
 def voiceover_text():
     """ An API route just for the audio file
-
         Returns:
             mp3: An .mp3 file
             HTTPS code: Depending on the result
-    """    
+    """
     data = request.get_json()
     text = data.get('text')
     language_code = data.get('language_code')
@@ -38,7 +37,6 @@ def voiceover_text():
             with open("data/translated_text.txt", "w", encoding="utf-8") as file:
                 file.write(text)
 
-
         # Generate voiceover audio from the given text
         vc.voiceOverNoClone(text, "audios/VoiceOver.mp3")
 
@@ -53,11 +51,10 @@ def voiceover_text():
 @app.route('/translated_audio', methods=['POST'])
 def translated_audio():
     """ An API route for the translated audio track
-
         Returns:
             mp3: An .mp3 file
             HTTPS code: Depending on the result
-    """    
+    """
     data = request.get_json()
     video_url = data['video_url']
     language_code = data['language_code']
@@ -82,17 +79,14 @@ def translated_audio():
     with open("audios/VoiceOver.mp3", "rb") as file:
         audio_data = file.read()
     return audio_data, 200, {'Content-Type': 'audio/mpeg'}
-"""
-    Route for getting the transcript as text
-"""
+
 @app.route('/transcript_text', methods=['POST'])
 def get_transcript_text():
     """ An API route for the transcript
-
         Returns:
             .json: A json containing the transcript
             HTTPS code: Depending on the result
-    """    
+    """
     data = request.get_json()
     video_url = data['video_url']
     
@@ -114,16 +108,14 @@ def get_transcript_text():
 
     return jsonify({"transcript": transcript_text}), 200
 
-@app.route('/translated_video_clone', methods=['POST'])
-def translate_video_clone():
+@app.route('/translated_video_clone/<string:video_url>', methods=['GET'])
+def translate_video_clone(video_url):
     """ An API route for the final, translated video with a cloned voice
-
         Returns:
             .mp4: A .mp4 file containing the translated and narrated video
             HTTPS code: Depending on the result
-    """    
+    """
     data = request.get_json()
-    video_url = data['video_url']
     language_code = data['language_code']
 
     try:
@@ -148,21 +140,18 @@ def translate_video_clone():
         return jsonify({"error": f"Error translating and creating video: {e}"}), 500
 
     # Read the final video and send it as a response
-    with open("videos/Final_Video.mp4", "rb") as file:
-        video_data = file.read()
-
-    return video_data, 200, {'Content-Type': 'video/mp4'}
-
-
+    try:
+        return send_file("videos/Final_Video.mp4", as_attachment=True)
+    except Exception as e:
+        return jsonify({"error": f"Error downloading video: {e}"}), 500
 
 @app.route('/translated_video_no_clone', methods=['POST'])
 def translate_video_no_clone():
     """ An API route for the final, translated video without a cloned voice
-
         Returns:
             .mp4: A .mp4 file containing the translated and narrated video
             HTTPS code: Depending on the result
-    """    
+    """
     data = request.get_json()
     video_url = data['video_url']
     language_code = data['language_code']
@@ -189,10 +178,10 @@ def translate_video_no_clone():
         return jsonify({"error": f"Error translating and creating video: {e}"}), 500
 
     # Read the final video and send it as a response
-    with open("videos/Final_Video.mp4", "rb") as file:
-        video_data = file.read()
-
-    return video_data, 200, {'Content-Type': 'video/mp4'}
+    try:
+        return send_file("videos/Final_Video.mp4", as_attachment=True)
+    except Exception as e:
+        return jsonify({"error": f"Error downloading video: {e}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
