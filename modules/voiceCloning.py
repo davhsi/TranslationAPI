@@ -1,15 +1,12 @@
-from elevenlabs import clone, generate, set_api_key, save, Voices, Voice
-from dotenv import dotenv_values
-from os import listdir, system
-
+import os
 import requests
+from elevenlabs import clone, generate, set_api_key, save, Voices, Voice
 
-if not '.env' in listdir('.'):
-    api_key = input("Please input your api key: ")
-    system(f'echo "API_KEY={str(api_key)}" > .env')
-else:
-    config = dotenv_values(".env")
-    api_key = config['API_KEY']
+api_key = os.environ['API_KEY'] 
+
+set_api_key(api_key)
+
+
 
 def voiceOverNoClone(transcript:str, output_file:str):
     """ Function for recording the translated audio track.  
